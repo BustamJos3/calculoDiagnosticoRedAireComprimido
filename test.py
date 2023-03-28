@@ -27,15 +27,15 @@ class SideMenu:
         self.frame2 = tk.Frame(self.frame,  bg=bg_color)
         self.frame3 = tk.Frame(self.frame, width=200, height=200,  bg=bg_color)
 
-        img1 = tk.PhotoImage(file="./imagenes/tubo.png", master=self.master)
+        img1 = tk.PhotoImage(file="calculoDiagnosticoRedAireComprimido/imagenes/tubo.png", master=self.master)
         self.button1 = tk.Button(self.frame2, image=img1, command=self.tuberia)
         self.button1.image = img1  # asignar la imagen al atributo del botón
 
-        img2 = tk.PhotoImage(file="./imagenes/t.png", master=self.master)
+        img2 = tk.PhotoImage(file="calculoDiagnosticoRedAireComprimido/imagenes/t.png", master=self.master)
         self.button2 = tk.Button(self.frame2, image=img2, command=lambda: print('dfgd'))
         self.button2.image = img2  # asignar la imagen al atributo del botón
         
-        img3 = tk.PhotoImage(file="./imagenes/codo.png", master=self.master)
+        img3 = tk.PhotoImage(file="calculoDiagnosticoRedAireComprimido/imagenes/codo.png", master=self.master)
         self.button3 = tk.Button(self.frame2, image=img3, command=lambda: print('dfgd'))
         self.button3.image = img3  # asignar la imagen al atributo del botón
 
@@ -80,7 +80,7 @@ class Application:
     def __init__(self, master, theme='light'):
         self.master = master
         self.master.title('Red de aire comprimido')
-        self.master.iconbitmap("imagenes/logo.ico")
+        self.master.iconbitmap("calculoDiagnosticoRedAireComprimido/imagenes/logo.ico")
         self.master.geometry('600x440')
         self.master.minsize(500, 430)
         
