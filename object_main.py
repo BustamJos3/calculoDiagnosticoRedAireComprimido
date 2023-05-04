@@ -1,0 +1,1 @@
+print("obbjeto vacio")
