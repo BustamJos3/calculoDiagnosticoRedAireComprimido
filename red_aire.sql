@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 04, 2023 at 03:24 AM
+-- Generation Time: May 04, 2023 at 06:05 PM
 -- Server version: 10.4.27-MariaDB
 -- PHP Version: 8.2.0
 
@@ -33,6 +33,20 @@ CREATE TABLE `accesorioprimaria` (
   `fk_Primaria` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish2_ci;
 
+--
+-- Dumping data for table `accesorioprimaria`
+--
+
+INSERT INTO `accesorioprimaria` (`id_accesorioPrimaria`, `tipo`, `fk_Primaria`) VALUES
+(1, 'Valve, Ball, Reduced trim, Beta = 0.9', 1),
+(2, 'Elbow, 90°, Long-radius (R/D = 1.5), All types', 1),
+(3, 'Elbow, 90°, Long-radius (R/D = 1.5), All types', 2),
+(4, 'Tee, Run, Screwed', 3),
+(5, 'Tee, Run, Screwed', 4),
+(6, 'Tee, Run, Screwed', 5),
+(7, 'Tee, Run, Screwed', 6),
+(8, 'Tee, Run, Screwed', 6);
+
 -- --------------------------------------------------------
 
 --
@@ -44,6 +58,52 @@ CREATE TABLE `accesoriosecundaria` (
   `tipo` varchar(100) NOT NULL,
   `fk_Secundaria` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish2_ci;
+
+--
+-- Dumping data for table `accesoriosecundaria`
+--
+
+INSERT INTO `accesoriosecundaria` (`id_accesorioSecundaria`, `tipo`, `fk_Secundaria`) VALUES
+(1, 'Contraction', 1),
+(2, 'Elbow, 90°, Long-radius (R/D = 1.5), All types', 1),
+(3, 'Valve, Ball, Reduced trim, Beta = 0.9', 1),
+(4, 'Tee, Run, Screwed', 2),
+(5, 'Tee, Run, Screwed', 3),
+(6, 'Tee, Run, Screwed', 4),
+(7, 'Tee, Run, Screwed', 4),
+(8, 'Contraction', 5),
+(9, 'Elbow, 90°, Long-radius (R/D = 1.5), All types', 5),
+(10, 'Valve, Ball, Reduced trim, Beta = 0.9', 5),
+(11, 'Tee, Run, Screwed', 6),
+(12, 'Tee, Run, Screwed', 7),
+(13, 'Tee, Run, Screwed', 8),
+(14, 'Tee, Run, Screwed', 9),
+(15, 'Tee, Run, Screwed', 10),
+(16, 'Tee, Run, Screwed', 11),
+(17, 'Tee, Run, Screwed', 11),
+(18, 'Contraction', 12),
+(19, 'Elbow, 90°, Long-radius (R/D = 1.5), All types', 12),
+(20, 'Valve, Ball, Reduced trim, Beta = 0.9', 12),
+(21, 'Tee, Run, Screwed', 13),
+(22, 'Tee, Run, Screwed', 14),
+(23, 'Tee, Run, Screwed', 15),
+(24, 'Tee, Run, Screwed', 16),
+(25, 'Tee, Run, Screwed', 17),
+(26, 'Tee, Run, Screwed', 18),
+(27, 'Tee, Run, Screwed', 18),
+(28, 'Contraction', 19),
+(29, 'Elbow, 90°, Long-radius (R/D = 1.5), All types', 19),
+(30, 'Valve, Ball, Reduced trim, Beta = 0.9', 19),
+(31, 'Tee, Run, Screwed', 20),
+(32, 'Tee, Run, Screwed', 21),
+(33, 'Tee, Run, Screwed', 22),
+(34, 'Tee, Run, Screwed', 22),
+(35, 'Contraction', 23),
+(36, 'Elbow, 90°, Long-radius (R/D = 1.5), All types', 23),
+(37, 'Valve, Ball, Reduced trim, Beta = 0.9', 23),
+(38, 'Tee, Run, Screwed', 24),
+(39, 'Tee, Run, Screwed', 25),
+(40, 'Tee, Run, Screwed', 25);
 
 -- --------------------------------------------------------
 
@@ -156,13 +216,13 @@ ALTER TABLE `tuberiasecundaria`
 -- AUTO_INCREMENT for table `accesorioprimaria`
 --
 ALTER TABLE `accesorioprimaria`
-  MODIFY `id_accesorioPrimaria` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_accesorioPrimaria` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `accesoriosecundaria`
 --
 ALTER TABLE `accesoriosecundaria`
-  MODIFY `id_accesorioSecundaria` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_accesorioSecundaria` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT for table `tuberiaprimaria`
