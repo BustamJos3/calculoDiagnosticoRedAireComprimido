@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 04, 2023 at 02:22 AM
+-- Generation Time: May 04, 2023 at 03:24 AM
 -- Server version: 10.4.27-MariaDB
 -- PHP Version: 8.2.0
 
@@ -87,6 +87,37 @@ CREATE TABLE `tuberiasecundaria` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish2_ci;
 
 --
+-- Dumping data for table `tuberiasecundaria`
+--
+
+INSERT INTO `tuberiasecundaria` (`id_Secundaria`, `coor_inicial`, `coor_final`, `material`, `deltaP_max`, `fk_Primaria`) VALUES
+(1, '(2000,4000,0)', '(2000,4000,2500)', 'Stainless steel', '2', 2),
+(2, '(2000,4000,2500)', '(2000,4000,5000)', 'Stainless steel', '2', 2),
+(3, '(2000,4000,5000)', '(2000,4000,7500)', 'Stainless steel', '2', 2),
+(4, '(2000,4000,7500)', '(2000,4000,10000)', 'Stainless steel', '2', 2),
+(5, '(5500,4000,0)', '(5500,4000,1400)', 'Stainless steel', '2', 3),
+(6, '(5500,4000,1400)', '(5500,4000,2800)', 'Stainless steel', '2', 3),
+(7, '(5500,4000,2800)', '(5500,4000,4200)', 'Stainless steel', '2', 3),
+(8, '(5500,4000,4200)', '(5500,4000,5600)', 'Stainless steel', '2', 3),
+(9, '(5500,4000,5600)', '(5500,4000,7000)', 'Stainless steel', '2', 3),
+(10, '(5500,4000,7000)', '(5500,4000,8400)', 'Stainless steel', '2', 3),
+(11, '(5500,4000,8400)', '(5500,4000,9800)', 'Stainless steel', '2', 3),
+(12, '(8500,4000,0)', '(8500,4000,1400)', 'Stainless steel', '2', 4),
+(13, '(8500,4000,1400)', '(8500,4000,2800)', 'Stainless steel', '2', 4),
+(14, '(8500,4000,2800)', '(8500,4000,4200)', 'Stainless steel', '2', 4),
+(15, '(8500,4000,4200)', '(8500,4000,5600)', 'Stainless steel', '2', 4),
+(16, '(8500,4000,5600)', '(8500,4000,7000)', 'Stainless steel', '2', 4),
+(17, '(8500,4000,7000)', '(8500,4000,8400)', 'Stainless steel', '2', 4),
+(18, '(8500,4000,8400)', '(8500,4000,9800)', 'Stainless steel', '2', 4),
+(19, '(11500,4000,0)', '(11500,4000,2500)', 'Stainless steel', '2', 5),
+(20, '(11500,4000,2500)', '(11500,4000,5000)', 'Stainless steel', '2', 5),
+(21, '(11500,4000,5000)', '(11500,4000,7500)', 'Stainless steel', '2', 5),
+(22, '(11500,4000,7500)', '(11500,4000,10000)', 'Stainless steel', '2', 5),
+(23, '(14500,4000,0)', '(14500,4000,500)', 'Stainless steel', '2', 6),
+(24, '(14500,4000,500)', '(14500,4000,5500)', 'Stainless steel', '2', 6),
+(25, '(14500,4000,5500)', '(14500,4000,10000)', 'Stainless steel', '2', 6);
+
+--
 -- Indexes for dumped tables
 --
 
@@ -143,7 +174,7 @@ ALTER TABLE `tuberiaprimaria`
 -- AUTO_INCREMENT for table `tuberiasecundaria`
 --
 ALTER TABLE `tuberiasecundaria`
-  MODIFY `id_Secundaria` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_Secundaria` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- Constraints for dumped tables
