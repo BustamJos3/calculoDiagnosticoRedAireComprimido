@@ -1,23 +1,30 @@
 !pip install fluids
 !pip install pint
 
+import pint
+ureg = pint.UnitRegistry()
+from fluids.units import *
+
 class pipeCalculator:
-    def __init__(self,work_long,accesories,inlet_P,total_caudal,delta_Pmax,height_of_system):
-        self._work_long=work_long
+    def __init__(self,coors,accesories,inlet_P,total_caudal,delta_Pmax,secondPipes,height_of_system):
+        import numpy as np
+        workLong=np.sqrt(np.sum((coors[1]-coors[0])**2))
+        self._work_long=workLong*ureg.m
         self._accesories=accesories
-        self._in_P=inlet_P
-        self._total_caudal=total_caudal
+        self._in_P=inlet_P*ureg.Pa
+        self._total_caudal=total_caudal*((ureg.m**3)/ureg.s)
         self._delta_P=delta_Pmax
-        self._height_of_system=height_of_system
+        self._second_pipes=secondPipes
+        self._height_of_system=height_of_system*ureg.m
 
     def atmospheric_properties(self):
         from fluids.atmosphere import ATMOSPHERE_1976
-        atm_props=ATMOSPHERE_1976(self._height_of_system)
+        atm_props=ATMOSPHERE_1976(Z=float(self._height_of_system.magnitude))
         rhoDensity=atm_props.rho # get rho @ Medellín height
         airMu=atm_props.viscosity(298) # dynamic viscosity @ T ambient *u.K
         return rhoDensity,airMu
 
-    def checkdP_fromD(self,seedDia, atmObj, workLong, kAcces, secondPipeD, secondPipeSects, inletP,Qtot):#find drop preassure
+    def checkdP_fromD(self,seedDia, workLong, kAcces, secondPipeSeedDia, secondPipeSects, inletP,Qtot):#find drop preassure
         import numpy as np #modules
         from fluids.fittings import Hooper2K, contraction_sharp
         from fluids.core import Reynolds
@@ -36,16 +43,27 @@ class pipeCalculator:
         k=0# klosses for friction factor and accesories
         k+=K_from_f(fd=fd, L=workLong, D=seedDia)#add at first the losses from friction factor
         for i in kAcces:#start of losses calculation from accesories
-            k+=Hooper2K(Di=seedDia,Re=Re,name=i[0])*i[1] # seedD.to_tuple()[0]
-        KContractions=secondPipeSects*contraction_sharp(Di1=seedDia,Di2=secondPipeD,fd=fd,roughness=epsilon) #loss for contractions from one pipe to another of different diameter
+            k+=Hooper2K(Di=seedDia,Re=Re,name=i)#losses for 1 accesory
+            #---->check number of accesories for that pipe
+        KContractions=secondPipeSects*contraction_sharp(Di1=seedDia,Di2=secondPipeSeedDia,fd=fd,roughness=epsilon) #loss for contractions from one pipe to another of different diameter
         k+=KContractions#final of process adding losses for contractions
         dropP=dP_from_K(k,rho=rhoDensity,V=V)# calculate drop preassure
-        dP=dropP/(inletP*10E5) # DeltaP=deltaP_max?
+        dP=(dropP/inletP)*100 # DeltaP=deltaP_max?
         return dP
     
     def find_diameter(self):#method to find min diameter
-        deltaP=10*self._delta_P
-        seedD=0.001 #*u.m seed diameter
-        while deltaP>self._delta_P:
-            seedD+=seedD*0.5
-            deltaP=checkdP_fromD(seedDia=seedD,...)
+        dP=self._delta_P
+        deltaP=10*dP
+        seedD=0.1 #*u.m seed diameter
+        seedD2=seedD*0.8
+        #attributes values
+        workL=self._work_long.magnitude
+        inP=self._in_P.magnitude
+        q_total=self._total_caudal.magnitude
+        while True:
+            deltaP=self.checkdP_fromD(seedDia=seedD,workLong=workL,kAcces=self._accesories,secondPipeSeedDia=seedD2,secondPipeSects=self._second_pipes,inletP=inP,Qtot=q_total)
+            if deltaP<=dP:
+                break
+            seedD+=seedD*0.05
+        seedDResult=round(seedD,3)*ureg.inches
+        return seedDResult #default in inches
