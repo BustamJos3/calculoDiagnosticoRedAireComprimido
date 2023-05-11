@@ -67,3 +67,46 @@ class pipeCalculator:
             seedD+=seedD*0.05
         seedDResult=round(seedD,3)*ureg.inches
         return seedDResult #default in inches
+        
+!pip install mariadb
+import mariadb
+
+class connection:
+    def __init__(self):
+        pass
+    #connection db to execute query
+    def query_connection(self,query):
+        try:
+            conn=mariadb.connect(
+            host="localhost",
+            user="root",
+            password="",
+            database="red_aire",
+            autocommit=True)
+        except Exception as err:
+            print("No fue posible conectarse")
+            print(err)
+            
+        cur=conn.cursor()#cur to get query results
+        cur.execute(query)
+        return cur
+    
+    def mostrar(self,where=""):
+        #every time mostrar(), results on visual must be deleted
+        #--->pending
+        try:
+            curPrimaria='SELECT * FROM `tuberiaprimaria`;'#query to get all tuberias primarias
+            cur=self.query_connection(curPrimaria)
+            if len(where)>0:#dato especifico para buscar en db existe?
+                try:
+                    curPrimaria_indexing='SELECT * FROM `tuberiaprimaria` WHERE `id_Primaria` = '+where#query to get data with specific value
+                    cur=self.query_connection(curPrimaria_indexing)#execute query
+                    for i in cur:#print results of specific tuberia primaria
+                        print(i)
+                except Exception as err:
+                    print('No fue posible obtener datos de la tubería primaria especifica')
+            for i in cur:#print results of all tuberias primarias
+                print(i)
+        except Exception as err:
+            print('No fue posible obtener datos de todas las tuberías primarias')
+            print(err)
