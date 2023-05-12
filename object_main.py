@@ -1,5 +1,6 @@
 !pip install fluids
 !pip install pint
+!pip install mariadb
 
 import pint
 ureg = pint.UnitRegistry()
@@ -68,14 +69,15 @@ class pipeCalculator:
         seedDResult=round(seedD,3)*ureg.inches
         return seedDResult #default in inches
         
-!pip install mariadb
 import mariadb
 
 class connection:
     def __init__(self):
-        pass
+        query_tableNames="SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA='red_aire';"
+        cur=self.query_connection(query_tableNames)
+        self._tablas=[i for i in cur]
     #connection db to execute query
-    def query_connection(self,query):
+    def query_connection(self,query,parameters=""):
         try:
             conn=mariadb.connect(
             host="localhost",
@@ -83,30 +85,62 @@ class connection:
             password="",
             database="red_aire",
             autocommit=True)
+            cur=conn.cursor()#cur to get query results
+            cur.execute(query,parameters)
+            return cur
         except Exception as err:
             print("No fue posible conectarse")
             print(err)
-            
-        cur=conn.cursor()#cur to get query results
-        cur.execute(query)
-        return cur
     
-    def mostrar(self,where=""):
+    def mostrar(self,tabla,id_tabla="",where=""):
         #every time mostrar(), results on visual must be deleted
         #--->pending
         try:
-            curPrimaria='SELECT * FROM `tuberiaprimaria`;'#query to get all tuberias primarias
-            cur=self.query_connection(curPrimaria)
-            if len(where)>0:#dato especifico para buscar en db existe?
+            if len(where)*len(tabla)*len(id_tabla)>0:#dato especifico para buscar en db existe?
                 try:
-                    curPrimaria_indexing='SELECT * FROM `tuberiaprimaria` WHERE `id_Primaria` = '+where#query to get data with specific value
-                    cur=self.query_connection(curPrimaria_indexing)#execute query
-                    for i in cur:#print results of specific tuberia primaria
+                    curTabla_indexing='SELECT * FROM `'+tabla+'` WHERE `'+id_tabla+'` = '+where#query to get data with specific value
+                    cur=self.query_connection(curTabla_indexing)#execute query
+                    for i in cur:#print results of specific
                         print(i)
                 except Exception as err:
-                    print('No fue posible obtener datos de la tubería primaria especifica')
-            for i in cur:#print results of all tuberias primarias
-                print(i)
+                    print('No fue posible obtener el dato específico de la tabla')
+            else:
+                curTabla='SELECT * FROM `'+tabla+'`;'#query to get all data from table
+                cur=self.query_connection(curTabla)
+                for i in cur:#print results
+                    print(i)
         except Exception as err:
-            print('No fue posible obtener datos de todas las tuberías primarias')
+            print('No fue posible obtener todos los datos de la tabla en específico')
+            print(err)
+    def agregar(self,tabla,parameters):
+        #add data into table with reference to another table if applicable
+        try:
+            if len(parameters)==4:
+                curQuery="INSERT INTO "+tabla+" (`coor_inicial`, `coor_final`, `material`, `deltaP_max`) VALUES (%s,%s,%s,%s)"
+                self.query_connection(curQuery,parameters)
+            elif len(parameters)==5:
+                curQuery="INSERT INTO "+tabla+"(`coor_inicial`, `coor_final`, `material`, `deltaP_max`, `fk_Primaria`) VALUES (%s,%s,%s,%s,%s)"
+                self.query_connection(curQuery,parameters)
+            elif len(parameters)==2:
+                curQuery="INSERT INTO "+tabla+"(`tipo`, `fk_Primaria`) VALUES (%s,%s)"
+                self.query_connection(curQuery,parameters)
+            elif len(parameters)==2:
+                curQuery="INSERT INTO "+tabla+"(`tipo`, `fk_Secundaria`) VALUES (%s,%s)"
+                self.query_connection(curQuery,parameters)
+            print(curQuery)
+            self.mostrar(tabla)
+        except Exception as err:
+            print("No fue posible agregar el dato")
+            print("tabla: {}, parametros: {}".format(tabla,parameters))
+            print(err)
+    
+    #add update method
+    
+    def eliminar(self,tabla,id_="",where=""):
+        try:
+            if len(tabla)*len(id_)*len(where)>0:
+                curQuery="DELETE FROM "+tabla+" WHERE "+id_+"="+where
+                self.query_connection(curQuery)
+        except Exception as err:
+            print("No fue posible eliminar el dato")
             print(err)
