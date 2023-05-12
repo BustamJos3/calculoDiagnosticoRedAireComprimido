@@ -75,7 +75,7 @@ class connection:
     def __init__(self):
         query_tableNames="SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA='red_aire';"
         cur=self.query_connection(query_tableNames)
-        self._tablas=[i for i in cur]
+        self._tablas=[i[0] for i in cur]
     #connection db to execute query
     def query_connection(self,query,parameters=""):
         try:
@@ -90,6 +90,18 @@ class connection:
             return cur
         except Exception as err:
             print("No fue posible conectarse")
+            print(err)
+    
+    def column_name_getter(self,tabla):
+        dict_columnNames={}
+        try:
+            query_columnNames="select COLUMN_NAME from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='{}';".format(tabla)
+            cur=self.query_connection(query_columnNames)
+            list_columnNames_result=[j[0] for j in cur]
+            dict_columnNames[tabla]=list_columnNames_result
+            return dict_columnNames
+        except Exception as err:
+            print('No fue posible obtener los nombres de las columnas en la tabla específica')
             print(err)
     
     def mostrar(self,tabla,id_tabla="",where=""):
@@ -134,7 +146,18 @@ class connection:
             print("tabla: {}, parametros: {}".format(tabla,parameters))
             print(err)
     
-    #add update method
+    def editar(self,tabla,where="",parameters=[]):
+        try:
+            tableInfo=self.column_name_getter(tabla)
+            i=tableInfo[tabla]
+            parametersSyntax=""
+            for j in range(1,len(i)):
+                parametersSyntax+="`{}`= %s,".format(i[j])
+            parametersSyntax=parametersSyntax[:-1]#delte last comma to correct syntax
+            curQuery="UPDATE `{}` SET {} WHERE `{}`={}".format(tabla,parametersSyntax,i[0],where)
+            cur=self.query_connection(curQuery,parameters)
+        except Exception as err:
+            print(err)
     
     def eliminar(self,tabla,id_="",where=""):
         try:
