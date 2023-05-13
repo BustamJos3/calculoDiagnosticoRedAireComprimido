@@ -150,15 +150,14 @@ class connection:
                     table_cols=self.column_name_getter(tabla)[tabla]
                     curTabla_indexing="SELECT * FROM `{}` WHERE `{}` = {}".format(tabla,table_cols[0],where)#query to get data with specific value
                     cur=self.query_connection(curTabla_indexing)#execute query
-                    for i in cur:#print results of specific
-                        print(i)
+                    return cur
                 except Exception as err:
                     print('No fue posible obtener el dato específico de la tabla')
+                    print(err)
             else:
                 curTabla="SELECT * FROM `{}`;".format(tabla)#query to get all data from table
                 cur=self.query_connection(curTabla)
-                for i in cur:#print results
-                    print(i)
+                return cur
         except Exception as err:
             print('No fue posible obtener todos los datos de la tabla en específico')
             print(err)
