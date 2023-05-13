@@ -2,20 +2,19 @@
 !pip install pint
 !pip install mariadb
 
-import pint
+import pint #manejo unds
 ureg = pint.UnitRegistry()
 from fluids.units import *
 
 class pipeCalculator:
-    def __init__(self,coors,accesories,inlet_P,total_caudal,delta_Pmax,secondPipes,height_of_system):
+    def __init__(self,inlet_P,total_caudal,delta_Pmax,height_of_system=1000):
         import numpy as np
-        workLong=np.sqrt(np.sum((coors[1]-coors[0])**2))
-        self._work_long=workLong*ureg.m
-        self._accesories=accesories
+        self._work_long=self.takeAll()[0]*ureg.m
+        self._accesories=self.takeAll()[1]
         self._in_P=inlet_P*ureg.Pa
         self._total_caudal=total_caudal*((ureg.m**3)/ureg.s)
         self._delta_P=delta_Pmax
-        self._second_pipes=secondPipes
+        self._second_pipes=self.takeAll()[2]
         self._height_of_system=height_of_system*ureg.m
 
     def atmospheric_properties(self):
@@ -24,7 +23,7 @@ class pipeCalculator:
         rhoDensity=atm_props.rho # get rho @ Medellín height
         airMu=atm_props.viscosity(298) # dynamic viscosity @ T ambient *u.K
         return rhoDensity,airMu
-
+    
     def checkdP_fromD(self,seedDia, workLong, kAcces, secondPipeSeedDia, secondPipeSects, inletP,Qtot):#find drop preassure
         import numpy as np #modules
         from fluids.fittings import Hooper2K, contraction_sharp
@@ -52,6 +51,34 @@ class pipeCalculator:
         dP=(dropP/inletP)*100 # DeltaP=deltaP_max?
         return dP
     
+    def takeAll(self):
+        import numpy as pd
+        try:
+            conexion=connection()
+            listLongInitial=[]
+            listLongFinal=[]
+            listAccessories=[]
+            for i in conexion._tablas:
+                resultSet=conexion.mostrar(i)
+                if i==conexion._tablas[0] or i==conexion._tablas[1]:
+                    for j in resultSet:
+                        listAccesories.append(j[1])
+                else:
+                    amtSecundarias=0
+                    if i=="tuberiasecundaria":
+                        amtSecundarias=len(i)
+                    for j in resultSet:
+                        listLongInitial.append(eval(j[1]))
+                        listLongFinal.append(eval(j[2]))
+            workLong=0
+            for i,j in zip(listLongInitial,listLongFinal):
+                difference_coors=j-i
+                difference_coors=difference_coors**2
+                workLong+=
+            return workLong,listAccessories,amtSecundarias
+        except Exception as err:
+            print(err)
+    
     def find_diameter(self):#method to find min diameter
         dP=self._delta_P
         deltaP=10*dP
@@ -67,8 +94,9 @@ class pipeCalculator:
                 break
             seedD+=seedD*0.05
         seedDResult=round(seedD,3)*ureg.inches
-        return seedDResult #default in inches
+        return seedDResult
         
+
 import mariadb
 
 class connection:
@@ -132,7 +160,7 @@ class connection:
             id_=self.column_name_getter(tabla)
             valueAmt=(len(id_[tabla])-1)*"%s,"
             valueAmt=valueAmt[:-1]
-            curQuery="INSERT INTO `{} ` ({}) VALUES ({})".format(tabla,map_parameters,valueAmt)
+            curQuery="INSERT INTO `{}` ({}) VALUES ({})".format(tabla,map_parameters,valueAmt)
             print(curQuery,parameters)
             self.query_connection(curQuery,parameters)
             self.mostrar(tabla)
