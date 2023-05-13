@@ -3,6 +3,8 @@ from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import numpy as np
+import object_main as OM
+
 
 tuberias = {}
 codos = {}
@@ -13,6 +15,8 @@ contador_codo = 0
 contador_Te = 0
 contador_Valvulas = 0
 propiedades = {}
+
+#llamar base de datos
 
 
 class SideMenu:
@@ -71,7 +75,7 @@ class SideMenu:
         self.var = tk.IntVar(value=1)
         self.chk = tk.Checkbutton(self.frame4,width=12,text="Tubería primaria:", bg=bg_color,fg='green',variable=self.var, justify='right')
         self.chk.grid(row=4,column=0 )
-        self.boton_enviar = tk.Button(self.frame4, text="Enviar", bg=bg_color, fg='white',command=self.tubo )
+        self.boton_enviar = tk.Button(self.frame4, text="Enviar", bg=bg_color, fg='white',command=lambda: self.tubo(self.var.get(),[self.punto_inicio.get(),self.punto_final.get(),self.combo.get(),self.D_Presion.get()]) )
         self.boton_enviar.grid(row=5, column=1)
 
         
@@ -81,7 +85,7 @@ class SideMenu:
         metric_checkbox.grid(row=0,column=0, )
         imperial_checkbox = tk.Checkbutton(self.frame_propiedades, text="Sistema Imperial", bg=bg_color,fg='green', variable=self.var2, command=self.select_imperial)
         imperial_checkbox.grid(row=1, column=0)
-        tk.Label(self.frame_propiedades,width=16, text="Presión atmosferica:",bg=bg_color, fg='white').grid(row=2, column=0)
+        tk.Label(self.frame_propiedades,width=16, text="Altitud:",bg=bg_color, fg='white').grid(row=2, column=0)
         self.A_mar = tk.Entry(self.frame_propiedades,width=10 )
         self.A_mar.grid(row=2,column=1, padx=6)
         self.boton_enviar_P = tk.Button(self.frame_propiedades, text="Enviar", bg=bg_color, fg='white',command=self.enviar_Pro )
@@ -245,10 +249,11 @@ class SideMenu:
             self.frame5.pack()
             tk.Label(self.frame5,width=12, text="Elemento:",bg='#2c2f33', fg='white').grid(row=0, column=0)
             variable_mienbros = tk.StringVar(self.frame5)
-            mienbros = [hp for hp in tuberias]
+            tuberias_pri = OM.connection().mostrar('tuberiaprimaria')
+            mienbros = [f'tubo#{hp[0]}' for hp in tuberias_pri]
             tubos_already = ttk.Combobox(self.frame5,width=12,textvariable=variable_mienbros, state='readonly')
             tubos_already.configure(values=mienbros)
-            tubos_already.current(len(tuberias)-1)
+            
             tubos_already.grid(row=0,column=1,)
             tk.Label(self.frame5, text="Punto final(N. tubo):",bg='#2c2f33', fg='white').grid(row=1, column=0)
             P_codo = tk.Entry(self.frame5,width=12 )
@@ -268,23 +273,32 @@ class SideMenu:
             chk_c = tk.Checkbutton(self.frame5,width=12,text="Tubería primaria:", bg='#2c2f33',fg='green',variable=var_c, justify='right')
             chk_c.grid(row=4,column=0 )
             def enviar_codo():
-                global contador_codo, contador_tubos
-                P_ubicacion = P_codo.get().split(',')
-                tubo_alr = tubos_already.get()
-                codos['codo'+str(contador_codo)] = [P_ubicacion,tubo_alr,var_c.get()]
-                print(codos)
-                contador_codo += 1
-
-                P_inicial =  tuberias[tubo_alr][1]
+                
+                P_ubicacion = P_codo.get()
+                if var_c.get() == 1:
+                    lista_cosa = [hp for hp in OM.connection().mostrar('tuberiaprimaria',(variable_mienbros.get().split('#')[1]))]
+                    print(lista_cosa[0][2])
+                    tubo_alr = lista_cosa[0][2]
+                    
+                else:
+                    lista_cosa = [hp for hp in OM.connection().mostrar('tuberiasecundaria',(variable_mienbros.get().split('#')[1]))]
+                    tubo_alr = lista_cosa[0][2]
+                
+                T_id = lista_cosa[0][0]
+                P_inicial =  tubo_alr
                 P_final =  P_ubicacion
-                tuberias['tubo'+str(contador_tubos)] = [P_inicial,P_final,var_c.get(), combo.get(), D_Presion.get()] 
-                print(tuberias)
-                contador_tubos += 1
+
+                if var_c.get() == 1:
+                    OM.connection().agregar('accesorioprimaria',['codo',T_id])
+                    OM.connection().agregar('tuberiaprimaria',[P_inicial,P_final, combo.get(), D_Presion.get()])
+                else:
+                    OM.connection().agregar('accesoriosecundaria',['codo',T_id])
+                    OM.connection().agregar('tuberiasecundaria',[P_inicial,P_final, combo.get(), D_Presion.get()])
 
                 #actualizar mienbros
-                mienbros_ = [hp for hp in tuberias]
+                mienbros_ = [f'tubo#{hp[0]}' for hp in tuberias_pri]
                 tubos_already.configure(values=mienbros_)
-                tubos_already.current(len(tuberias)-1)
+                
 
             
             boton_enviar_ = tk.Button(self.frame5, text="Enviar", bg='#2c2f33', fg='white',command=enviar_codo )
@@ -357,14 +371,21 @@ class SideMenu:
     
     
 
-    def tubo(self):
-        global contador_tubos
-        P_inicial =  self.punto_inicio.get().split(',')
-        P_final =  self.punto_final.get().split(',')
-        tuberias['tubo'+str(contador_tubos)] = [P_inicial,P_final,self.var.get(), self.combo.get(), self.D_Presion.get()] 
+    def tubo(self,pri_sec,parametros):
+        objeto = OM.connection()
+        if pri_sec == 1: #tuberia primaria
+            tabla = 'tuberiaprimaria'
+        else:
+            tabla = 'tuberiasecundaria'
+        objeto.agregar(tabla,parametros)
 
-        print(tuberias)
-        contador_tubos += 1
+        # global contador_tubos
+        # P_inicial =  self.punto_inicio.get().split(',')
+        # P_final =  self.punto_final.get().split(',')
+        # tuberias['tubo'+str(contador_tubos)] = [P_inicial,P_final,self.var.get(), self.combo.get(), self.D_Presion.get()] 
+
+        # print(tuberias)
+        # contador_tubos += 1
     
 class Application:
     def __init__(self, master, theme='light'):
@@ -454,13 +475,20 @@ class Application:
             
             frame_tubos = tk.Frame(frame_f_, bg='red')
             frame_tubos.grid(column=0, row=0, padx=5 )
+            objetos = OM.connection()
+            Tubos_pri = objetos.mostrar('tuberiaprimaria')
+
+            Tubos_sec = objetos.mostrar('tuberiasecundaria')
             
-            i = 0
-            for hp in tuberias.keys():
-                tk.Label(frame_tubos, text=hp, bg='white', fg='black').grid(row=i, column=0)
+            tk.Label(frame_tubos, text='Tuberia Primaria', bg='white', fg='black').grid(row=0, column=0)
+            i = 1
+            for hp in Tubos_pri: #tuberia primaria
+                tk.Label(frame_tubos, text=f'Tubo #{hp[0]}', bg='white', fg='black').grid(row=i, column=0)
+
+                
                 #botones editar
-                self.borrar_b = tk.Button(frame_tubos,width=6, text='Borrar', bg='#2c2f33', fg='red', command=self.borrar)
-                self.update = tk.Button(frame_tubos,width=7, text='Actualizar',  bg='#2c2f33', fg='green', command=self.borrar)
+                self.borrar_b = tk.Button(frame_tubos,width=6, text='Borrar', bg='#2c2f33', fg='red', command=lambda: self.borrar('tuberiaprimaria',hp[0]))
+                self.update = tk.Button(frame_tubos,width=7, text='Actualizar',  bg='#2c2f33', fg='green', command=lambda: self.borrar('tuberiaprimaria',[],hp[0]))
                 self.borrar_b.grid(row=i, column=2)
                 self.update.grid(row=i, column=1)
                 i += 1
@@ -497,9 +525,15 @@ class Application:
             canvas_sc.configure(scrollregion=canvas_sc.bbox("all"))
             print('edit')      
 
-    def borrar(self):
-        global tuberias
-        print(tuberias.keys())
+    def borrar(self,tabla,id):
+        objetos = OM.connection()
+        objetos.eliminar(tabla,id)
+        print('Done')
+    
+    def editar(self,tabla,list,id):
+        objetos = OM.connection()
+        objetos.editar(tabla,list,id)
+        print('Done')
            
     def actualizar(self):
         self.editar_sys.pack_forget()
@@ -508,22 +542,18 @@ class Application:
         
         self.img.clf()
         ax = self.img.add_subplot(111, projection='3d')
-        for hp in tuberias:
-            P_inicial = [int(tuberias[hp][0][0]),int(tuberias[hp][0][1]),int(tuberias[hp][0][2])]
-            P_final = [int(tuberias[hp][1][0]),int(tuberias[hp][1][1]),int(tuberias[hp][1][2])]
+        objetos = OM.connection()
+        tuberias_db = objetos.mostrar('tuberiaprimaria')
+        for hp in tuberias_db:
+            P_inicial = eval(hp[1])
+            P_final = eval(hp[2])
             x_line = np.array([P_inicial[0], P_final[0]])
             y_line = np.array([P_inicial[1], P_final[1]])
             z_line = np.array([P_inicial[2], P_final[2]])
             x_point, y_point, z_point = np.mean(x_line), np.mean(y_line), np.mean(z_line)
-            texto = hp
-            if tuberias[hp][2]==1: #tuberia primaria
-                ax.plot(x_line, y_line, z_line,color='blue')
-                
-                ax.text(x_point, y_point, z_point, texto, color='black', fontsize=12)
-            else: #tuberia secundaria
-                ax.plot(x_line, y_line, z_line,color='red')       
-    
-                ax.text(x_point, y_point, z_point, texto, color='black', fontsize=12)
+            texto = f'tubo#{hp[0]}'
+            ax.plot(x_line, y_line, z_line,color='blue')
+            ax.text(x_point, y_point, z_point, texto, color='black', fontsize=12)
             
         for hp in codos:
             P_ubicacion = codos[hp][0]
@@ -571,17 +601,15 @@ class Application:
                 ax.plot([P_inicial[0],P_3[0]],[P_inicial[1],P_3[1]],[P_inicial[2],P_3[2]],color='black',linewidth=4)
                 ax.plot([P_final_re[0],P_inicial[0]],[P_final_re[1],P_inicial[1]],[P_final_re[2],P_inicial[2]],color='black',linewidth=4)
 
-            for hp in VALVULAS:
-                P_inicial = tuberias[VALVULAS[hp][1]][1]
-                print(P_inicial)
-                if VALVULAS[hp][2]==1:#tuberia primaria
-                    ax.plot(P_inicial[0],P_inicial[1],P_inicial[2],color='black',linewidth=10)
-                    
+        for hp in VALVULAS:
+            P_inicial = tuberias[VALVULAS[hp][1]][1]
+            print(P_inicial)
+            if VALVULAS[hp][2]==1:#tuberia primaria
+                ax.plot(P_inicial[0],P_inicial[1],P_inicial[2],color='black',linewidth=10)
+                
         self.canvas_.draw()
 
-
-
-               
+              
 
 if __name__ == '__main__':
     root = tk.Tk()
