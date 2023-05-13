@@ -73,7 +73,7 @@ import mariadb
 
 class connection:
     def __init__(self):
-        query_tableNames="SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA='red_aire';"
+        query_tableNames="SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = 'red_aire';"
         cur=self.query_connection(query_tableNames)
         self._tablas=[i[0] for i in cur]
     #connection db to execute query
@@ -86,6 +86,7 @@ class connection:
             database="red_aire",
             autocommit=True)
             cur=conn.cursor()#cur to get query results
+            print(query)
             cur.execute(query,parameters)
             return cur
         except Exception as err:
@@ -95,75 +96,93 @@ class connection:
     def column_name_getter(self,tabla):
         dict_columnNames={}
         try:
-            query_columnNames="select COLUMN_NAME from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='{}';".format(tabla)
+            query_columnNames="select COLUMN_NAME from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME = '{}';".format(tabla)
             cur=self.query_connection(query_columnNames)
             list_columnNames_result=[j[0] for j in cur]
             dict_columnNames[tabla]=list_columnNames_result
+            print(dict_columnNames)
             return dict_columnNames
         except Exception as err:
             print('No fue posible obtener los nombres de las columnas en la tabla específica')
             print(err)
-    
-    def mostrar(self,tabla,id_tabla="",where=""):
-        #every time mostrar(), results on visual must be deleted
-        #--->pending
+            
+    def map_parameter(self,tabla,op):
         try:
-            if len(where)*len(tabla)*len(id_tabla)>0:#dato especifico para buscar en db existe?
-                try:
-                    curTabla_indexing='SELECT * FROM `'+tabla+'` WHERE `'+id_tabla+'` = '+where#query to get data with specific value
-                    cur=self.query_connection(curTabla_indexing)#execute query
-                    for i in cur:#print results of specific
-                        print(i)
-                except Exception as err:
-                    print('No fue posible obtener el dato específico de la tabla')
+            tableInfo=self.column_name_getter(tabla)
+            info=tableInfo[tabla]
+            parametersSyntax=""
+            if op==1:
+                str_parameters="`{}` = %s,"#str to get Update parameters
             else:
-                curTabla='SELECT * FROM `'+tabla+'`;'#query to get all data from table
-                cur=self.query_connection(curTabla)
-                for i in cur:#print results
-                    print(i)
+                str_parameters="`{}`,"
+
+            for j in range(1,len(info)):
+                parametersSyntax+=str_parameters.format(info[j])
+            parametersSyntax=parametersSyntax[:-1]#delte last comma to correct syntax
+            print(parametersSyntax)#revision_flag
+            return parametersSyntax
         except Exception as err:
-            print('No fue posible obtener todos los datos de la tabla en específico')
+            print("No fue posible construir la lista de parametros de la tabla específica")
             print(err)
+    #begin CRUD
     def agregar(self,tabla,parameters):
         #add data into table with reference to another table if applicable
         try:
-            if len(parameters)==4:
-                curQuery="INSERT INTO "+tabla+" (`coor_inicial`, `coor_final`, `material`, `deltaP_max`) VALUES (%s,%s,%s,%s)"
-                self.query_connection(curQuery,parameters)
-            elif len(parameters)==5:
-                curQuery="INSERT INTO "+tabla+"(`coor_inicial`, `coor_final`, `material`, `deltaP_max`, `fk_Primaria`) VALUES (%s,%s,%s,%s,%s)"
-                self.query_connection(curQuery,parameters)
-            elif len(parameters)==2:
-                curQuery="INSERT INTO "+tabla+"(`tipo`, `fk_Primaria`) VALUES (%s,%s)"
-                self.query_connection(curQuery,parameters)
-            elif len(parameters)==2:
-                curQuery="INSERT INTO "+tabla+"(`tipo`, `fk_Secundaria`) VALUES (%s,%s)"
-                self.query_connection(curQuery,parameters)
-            print(curQuery)
+            map_parameters=self.map_parameter(tabla,2)
+            id_=self.column_name_getter(tabla)
+            valueAmt=(len(id_[tabla])-1)*"%s,"
+            valueAmt=valueAmt[:-1]
+            curQuery="INSERT INTO `{} ` ({}) VALUES ({})".format(tabla,map_parameters,valueAmt)
+            print(curQuery,parameters)
+            self.query_connection(curQuery,parameters)
             self.mostrar(tabla)
         except Exception as err:
             print("No fue posible agregar el dato")
             print("tabla: {}, parametros: {}".format(tabla,parameters))
             print(err)
     
-    def editar(self,tabla,where="",parameters=[]):
+    def mostrar(self,tabla,where=""):
+        #every time mostrar(), results on visual must be deleted
+        #--->pending
         try:
-            tableInfo=self.column_name_getter(tabla)
-            i=tableInfo[tabla]
-            parametersSyntax=""
-            for j in range(1,len(i)):
-                parametersSyntax+="`{}`= %s,".format(i[j])
-            parametersSyntax=parametersSyntax[:-1]#delte last comma to correct syntax
-            curQuery="UPDATE `{}` SET {} WHERE `{}`={}".format(tabla,parametersSyntax,i[0],where)
-            cur=self.query_connection(curQuery,parameters)
+            if len(where)*len(tabla)>0:#dato especifico para buscar en db existe?
+                try:
+                    table_cols=self.column_name_getter(tabla)[tabla]
+                    curTabla_indexing="SELECT * FROM `{}` WHERE `{}` = {}".format(tabla,table_cols[0],where)#query to get data with specific value
+                    cur=self.query_connection(curTabla_indexing)#execute query
+                    for i in cur:#print results of specific
+                        print(i)
+                except Exception as err:
+                    print('No fue posible obtener el dato específico de la tabla')
+            else:
+                curTabla="SELECT * FROM `{}`;".format(tabla)#query to get all data from table
+                cur=self.query_connection(curTabla)
+                for i in cur:#print results
+                    print(i)
         except Exception as err:
+            print('No fue posible obtener todos los datos de la tabla en específico')
             print(err)
     
-    def eliminar(self,tabla,id_="",where=""):
+    def editar(self,tabla,parameters,where):
         try:
-            if len(tabla)*len(id_)*len(where)>0:
-                curQuery="DELETE FROM "+tabla+" WHERE "+id_+"="+where
-                self.query_connection(curQuery)
+            map_parameters=self.map_parameter(tabla,1)
+            id_=self.column_name_getter(tabla)
+            id_=id_[tabla][0]
+            curQuery="UPDATE `{}` SET {} WHERE `{}` = {}".format(tabla,map_parameters,id_,where)
+            print(curQuery,parameters)
+            self.query_connection(curQuery,parameters)
+        except Exception as err:
+            print("No fue posible editar el dato especificado")
+            print(err)
+    
+    def eliminar(self,tabla,where):
+        try:
+            tableInfo=self.column_name_getter(tabla)[tabla]
+            id_=tableInfo[0]
+            curQuery="DELETE FROM `{}` WHERE `{}` = {}".format(tabla,id_,where)
+            print(curQuery)
+            self.query_connection(curQuery)
         except Exception as err:
             print("No fue posible eliminar el dato")
             print(err)
+    #final CRUD
